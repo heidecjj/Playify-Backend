@@ -1,0 +1,30 @@
+# Use Dockerized infrastructure
+sudo: false
+language: python
+# Cache our Gcloud SDK between commands
+cache:
+  directories:
+  - "$HOME/google-cloud-sdk/"
+env:
+# Make sure gcloud command is on our PATH and the App Engine SDK is in the Python path
+- PATH=$PATH:${HOME}/google-cloud-sdk/bin PYTHONPATH=${PYTHONPATH}:./lib CLOUDSDK_CORE_DISABLE_PROMPTS=1
+before_install:
+# If the SDK is not already cached, download it and unpack it
+- if [ ! -d ${HOME}/google-cloud-sdk ]; then
+     curl https://sdk.cloud.google.com | bash;
+  fi
+# [START auth]
+# Decrypt the credentials we added to the repo using the key we added with the Travis command line tool
+- openssl aes-256-cbc -K $encrypted_90b7f97287af_key -iv $encrypted_90b7f97287af_iv -in playify-gae-key.json.enc -out playify-gae-key.json -d
+# Here we use the decrypted service account credentials to authenticate the command line tool
+- gcloud auth activate-service-account --key-file playify-gae-key.json
+# [END auth]
+install:
+# Set the correct project to deploy to
+- gcloud config set project playify
+script:
+- ./create_env_file.sh
+# [START deploy]
+# Deploy the app
+- gcloud -q app deploy app.yaml --promote
+# [END deploy]
