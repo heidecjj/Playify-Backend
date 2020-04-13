@@ -14,31 +14,10 @@ Router.get('/', (req, res) => {
 		)
 		.then(artistData => {
 			const artistMeta = artistData.data;
-			const artistUrl = `https://api.spotify.com/v1/artists/${encodeURIComponent(
-				artistMeta.id
-			)}`;
 
-			const artistAlbums = axios.get(`${artistUrl}/albums`, {
-				headers: { Authorization: tokenHandler.getHeader() },
-				params: { limit: 5, include_groups: 'album,single' }
+			res.json({
+				name: dataHandler.artist(artistMeta)
 			});
-
-			const artistTracks = axios.get(`${artistUrl}/top-tracks`, {
-				headers: { Authorization: tokenHandler.getHeader() },
-				params: { limit: 10, country: 'US' }
-			});
-
-			Promise.all([artistAlbums, artistTracks])
-				.then(data => {
-					const [artistAlbums, artistTracks] = data;
-
-					res.json({
-						name: dataHandler.artist(artistMeta),
-						albums: dataHandler.albums(artistAlbums.data.items),
-						tracks: dataHandler.artistTracks(artistTracks.data.tracks)
-					});
-				})
-				.catch(err => console.error(err));
 		})
 		.catch(err => {
 			errorHandler.handle(err);
