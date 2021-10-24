@@ -18,16 +18,17 @@ Router.get('/', (req, res) => {
 				params: {
 					limit: 100,
 					fields:
-						'name,description,owner.display_name,tracks(items(track(name,artists,album(artists,name,images))),limit,total)'
+						'name,description,owner.display_name,images,tracks(items(track(name,artists,album(artists,name,images))),limit,total)'
 				}
 			}
 		)
 		.then(playlistData => {
-			const { name, description, owner, tracks } = playlistData.data;
+			const { name, description, owner, images, tracks } = playlistData.data;
 			res.json({
 				name,
 				description,
 				creator: owner.display_name,
+				images: images,
 				tracks: dataHandler.playlistTracks(tracks.items),
 				limit: tracks.limit,
 				total: tracks.total,
